@@ -28,7 +28,7 @@ Command line interface:
                             format.
 
 First argument is a mandatory sub-command, similar to that of git or
-subversion CLI. `generatetraining` command produces a CSV file out of a target 
+subversion CLI. :code:`generatetraining` command produces a CSV file out of a target 
 PDB file and its predictions which are also in PDB format.
 
 .. code-block:: console
@@ -54,12 +54,12 @@ PDB file and its predictions which are also in PDB format.
 Multiple model files can be specified using a comma-separated list of file names. 
 This command first aligns all model structures onto the target structure and
 computes local structure features such as surface accessibility and secondary
-structure of residues. Output is saved into a CSV so that `train` command can
+structure of residues. Output is saved into a CSV so that :code:`train` command can
 parse it. Class labels are positive if residues of the aligned model file is
 close enough to those of target file. Maximum distance is specified by
-`--distance/-d` parameter which has a default value of 3.5 Angstrom.
+:code:`--distance/-d` parameter which has a default value of 3.5 Angstrom.
 
-`train` command parses given input CSV training file and trains a RandomForest
+:code:`train` command parses given input CSV training file and trains a RandomForest
 using scikit-learn framework.
 
 
@@ -80,11 +80,11 @@ using scikit-learn framework.
                             Number of trees in the forest. Default: 100
 
 Trained RandomForest instance is saved into the output file in pickle format
-so that the next step (`predict` command) can use it to predict assessment
+so that the next step (:code:`predict` command) can use it to predict assessment
 scores of a new model file in PDB format. Number of trees in the random forest
-can also be specified using `--ntrees/-n` parameter.
+can also be specified using :code:`--ntrees/-n` parameter.
 
-`predict` command requires a new model file of which assesment scores will be
+:code:`predict` command requires a new model file of which assesment scores will be
 computed. Another required parameter is the random forest file in pickle
 format. Output is the structural features as well as the predicted class
 labels.
