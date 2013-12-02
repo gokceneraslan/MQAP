@@ -113,5 +113,9 @@ MQAP requires following Python packages:
 - `scikit-learn <http://scikit-learn.org/>`_ (for classifying using RandomForestClassifier class)
 - numpy (for usual matrix operations)
 - `ProDy <http://www.csb.pitt.edu/prody/>`_ (for PDB parsing, alingment and manipulation)
+- `DSSP <http://swift.cmbi.ru.nl/gv/dssp/>`_ executable (for computing surface
+  accessibility and secondary structure) which must be in :code:`$PATH` with name :code:`dssp`
+- `STRIDE <http://webclu.bio.wzw.tum.de/stride/>`_ executable (for computing surface
+  accessibility and secondary structure) which must be in :code:`$PATH` with name :code:`stride`
 
 
