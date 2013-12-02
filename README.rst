@@ -107,7 +107,7 @@ labels.
 Requirements:
 =============
 
-MQAP requires following Python packages:
+MQAP requires following Python packages and command line tools:
 
 - `pandas <http://pandas.pydata.org/>`_ (for generating DataFrames and loading from/saving to CSV files conveniently)
 - `scikit-learn <http://scikit-learn.org/>`_ (for classifying using RandomForestClassifier class)
