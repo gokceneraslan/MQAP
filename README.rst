@@ -117,5 +117,7 @@ MQAP requires following Python packages and command line tools:
   accessibility and secondary structure) which must be in :code:`$PATH` with name :code:`dssp`
 - `STRIDE <http://webclu.bio.wzw.tum.de/stride/>`_ executable (for computing surface
   accessibility and secondary structure) which must be in :code:`$PATH` with name :code:`stride`
-
+- `NetSurfP 1.0 <http://www.cbs.dtu.dk/cgi-bin/sw_request?netsurfp>`_
+  executable (for computing surface exposure from sequence information) with
+  name :code:`netsurfp`
 

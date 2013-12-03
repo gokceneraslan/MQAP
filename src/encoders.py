@@ -23,9 +23,18 @@ DSSPssEncoder.fit(['H', 'B', 'E', 'G', 'I', 'T', 'S', '-'])
 STRIDEssEncoder = LabelEncoder()
 STRIDEssEncoder.fit(['H', 'B', 'E', 'G', 'I', 'T', 'S', 'C', 'b'])
 
+NetSurfPExpEncoder = LabelEncoder()
+NetSurfPExpEncoder.fit(['E', 'B', '-'])
+
 MQAPmapper = DataFrameMapper([
                               ('DSSPacc', None),
                               ('DSSPss', DSSPssEncoder),
                               ('STRIDEarea', None),
-                              ('STRIDEss', STRIDEssEncoder)])
+                              ('STRIDEss', STRIDEssEncoder),
+                              ('NetSurfP_exp', NetSurfPExpEncoder),
+                              ('NetSurfP_asa', None),
+                              ('NetSurfP_rsa', None),
+                              ('NetSurfP_alpha', None),
+                              ('NetSurfP_beta', None),
+                              ('NetSurfP_coil', None)])
 

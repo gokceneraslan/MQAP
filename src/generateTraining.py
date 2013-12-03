@@ -26,6 +26,8 @@ import numpy as np
 import pandas as pd
 import prody
 
+import netsurfp
+
 def generateFeatures(models, target=None, output=None, distance=None):
     if target:
         targetPDB = prody.parsePDB(target)
@@ -92,6 +94,47 @@ def generateFeatures(models, target=None, output=None, distance=None):
             ss = pd.Series(modelPDB.ca.getSecstrs())
             ss[ss == ''] = '-'
             datadict['DSSPss'] = ss
+
+
+        #run NetSurfP
+        netsurfp.parseNetSurfP(netsurfp.execNetSurfP(modelFilename,
+                                                     outputdir=tempdir),
+                                                     modelPDB)
+
+        if target:
+            datadict['NetSurfP_exp'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_exposure')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['NetSurfP_asa'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_asa')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['NetSurfP_rsa'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_rsa')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['NetSurfP_alpha'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_alphascore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['NetSurfP_beta'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_betascore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['NetSurfP_coil'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_coilscore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+
+        else:
+            datadict['NetSurfP_exp'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_exposure'))
+            datadict['NetSurfP_asa'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_asa'))
+            datadict['NetSurfP_rsa'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_rsa'))
+            datadict['NetSurfP_alpha'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_alphascore'))
+            datadict['NetSurfP_beta'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_betascore'))
+            datadict['NetSurfP_coil'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_coilscore'))
+
 
         #remove temporary directory
         shutil.rmtree(tempdir, ignore_errors=True)
