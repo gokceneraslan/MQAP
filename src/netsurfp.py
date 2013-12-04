@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import textwrap
-import tempfile
 
 import numpy as np
 
@@ -11,6 +9,8 @@ from prody.utilities import gunzip, which
 
 from prody import parsePDB
 from prody import fetchPDB
+
+import fasta
 
 __all__ = ['execNetSurfP', 'parseNetSurfP', 'performNetSurfP']
 
@@ -37,16 +37,7 @@ def execNetSurfP(pdb, outputname=None, outputdir=None):
             pdb = gunzip(pdb, os.path.join(outputdir,
                          os.path.split(os.path.splitext(pdb)[0])[1]))
 
-    pdbStructure = parsePDB(pdb)
-    fastahandle, fastaname = tempfile.mkstemp(suffix='.fasta', text=True)
-
-    for chain in pdbStructure.iterChains():
-        sequence = chain.getSequence()
-        chid = chain.getChid()
-
-        os.write(fastahandle, '>chain_%s\n%s\n' % (chid,
-                                      '\n'.join(textwrap.wrap(sequence, 60))))
-    os.close(fastahandle)
+    fastaname = fasta.convert(pdb)
 
     if outputdir is None:
         outputdir = '.'
