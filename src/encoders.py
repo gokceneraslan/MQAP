@@ -26,6 +26,9 @@ STRIDEssEncoder.fit(['H', 'B', 'E', 'G', 'I', 'T', 'S', 'C', 'b'])
 NetSurfPExpEncoder = LabelEncoder()
 NetSurfPExpEncoder.fit(['E', 'B', '-'])
 
+PSIPREDssEncoder = LabelEncoder()
+PSIPREDssEncoder.fit(['C', 'H', 'E', '-'])
+
 MQAPmapper = DataFrameMapper([
                               ('DSSPacc', None),
                               ('DSSPss', DSSPssEncoder),
@@ -36,5 +39,9 @@ MQAPmapper = DataFrameMapper([
                               ('NetSurfP_rsa', None),
                               ('NetSurfP_alpha', None),
                               ('NetSurfP_beta', None),
-                              ('NetSurfP_coil', None)])
+                              ('NetSurfP_coil', None),
+                              ('PSIPRED_ss', PSIPREDssEncoder),
+                              ('PSIPRED_coilscore', None),
+                              ('PSIPRED_helixscore', None),
+                              ('PSIPRED_strandscore', None)])
 

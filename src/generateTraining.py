@@ -27,6 +27,7 @@ import pandas as pd
 import prody
 
 import netsurfp
+import psipred
 
 def generateFeatures(models, target=None, output=None, distance=None):
     if target:
@@ -135,6 +136,32 @@ def generateFeatures(models, target=None, output=None, distance=None):
             datadict['NetSurfP_coil'] = \
                 pd.Series(modelPDB.ca.getData('netsurfp_coilscore'))
 
+        #run PSIPRED
+        psipred.parsePSIPRED(psipred.execPSIPRED(modelFilename,
+                                                 outputdir=tempdir),
+                                                     modelPDB)
+        if target:
+            datadict['PSIPRED_ss'] = \
+                pd.Series(modelPDB.ca.getData('psipred_ss')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['PSIPRED_coilscore'] = \
+                pd.Series(modelPDB.ca.getData('psipred_coilscore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['PSIPRED_helixscore'] = \
+                pd.Series(modelPDB.ca.getData('psipred_helixscore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['PSIPRED_strandscore'] = \
+                pd.Series(modelPDB.ca.getData('psipred_strandscore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+        else:
+            datadict['PSIPRED_ss'] = \
+                pd.Series(modelPDB.ca.getData('psipred_ss'))
+            datadict['PSIPRED_coilscore'] = \
+                pd.Series(modelPDB.ca.getData('psipred_coilscore'))
+            datadict['PSIPRED_helixscore'] = \
+                pd.Series(modelPDB.ca.getData('psipred_helixscore'))
+            datadict['PSIPRED_strandscore'] = \
+                pd.Series(modelPDB.ca.getData('psipred_strandscore'))
 
         #remove temporary directory
         shutil.rmtree(tempdir, ignore_errors=True)
