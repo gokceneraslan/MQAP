@@ -120,6 +120,6 @@ MQAP requires following Python packages and command line tools:
 - `NetSurfP 1.0 <http://www.cbs.dtu.dk/cgi-bin/sw_request?netsurfp>`_
   executable (for computing surface exposure from sequence information) must
   be in :code:`$PATH` with name :code:`netsurfp`
-- `PSIPRED 3.3 <http://bioinf.cs.ucl.ac.uk/software_downloads/>` executable
+- `PSIPRED 3.3 <http://bioinf.cs.ucl.ac.uk/software_downloads/>`_ executable
   must be in :code:`$PATH` with name :code:`runpsipred`
 
