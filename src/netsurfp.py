@@ -93,7 +93,7 @@ def parseNetSurfP(netsurfp, ag):
             continue
 
         chainid = seqname.split('_')
-        chainid = chainid[1] if chainid[1].strip() == 2 else ' '
+        chainid = chainid[1] if chainid[1].strip() else ' '
 
         if ag.ca.copy()[chainid].getSequence()[resindex - 1].upper() != resname.upper():
             continue
