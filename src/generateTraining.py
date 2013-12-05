@@ -29,6 +29,37 @@ import prody
 import netsurfp
 import psipred
 
+def copyDataFromTarget(target, model, labels=('psipred', 'netsurfp')):
+    data = {}
+    for label in target.getDataLabels():
+        if not label.startswith(tuple(labels)):
+            continue
+        data[label] = np.zeros(model.numAtoms(), dtype=target.getData(label).dtype)
+
+    for tchain in target.iterChains():
+
+        #try to find matching chain first
+        if tchain.getChid() in [x.getChid() for x in model.iterChains()]:
+            mchain = tchain.getChid()
+        else:
+            mchain = prody.matchChains(model, target[tchain.getChid()])[0][0]
+            mchain = mchain.copy().getChids()[0]
+
+        for tres in tchain.ca.copy().iterResidues():
+            for label in data:
+                try:
+                    indices = model[mchain][tres.getResnum()].getIndices()
+                    data[label][indices] = tres.ca.getData(label)
+                except AttributeError: #target may have more residues than
+                                       #the model
+                    pass
+
+    for label in data:
+        if data[label].dtype.char == 'S':
+            data[label][data[label] == ''] = '-'
+        model.setData(label, data[label])
+
+
 def generateFeatures(models, target=None, output=None, distance=None):
     if target:
         targetPDB = prody.parsePDB(target)
@@ -43,9 +74,20 @@ def generateFeatures(models, target=None, output=None, distance=None):
         dataframe = pd.DataFrame(columns=['STRIDEarea', 'STRIDEss', 'DSSPacc',
                                           'DSSPss'])
 
+    tempdir = tempfile.mkdtemp()
+
+    if target:
+        # we don't want to run NetSurfP and PSIPRED over and over again for all
+        # model structures. we compute them for target structure and just reuse
+        # on model structures
+        netsurfp.parseNetSurfP(netsurfp.execNetSurfP(target, outputdir=tempdir),
+                                                     targetPDB)
+
+        psipred.parsePSIPRED(psipred.execPSIPRED(target, outputdir=tempdir),
+                                                 targetPDB)
+
     for i, modelFilename in enumerate(modelFilenames):
         datadict = {}
-        tempdir = tempfile.mkdtemp()
         modelPDB = prody.parsePDB(modelFilename)
 
         #if model has no chainID, let's assign one. That makes STRIDE parser
@@ -60,9 +102,13 @@ def generateFeatures(models, target=None, output=None, distance=None):
                                            autoext=False)
 
         if target:
+            #superimpose model onto target structure
             match = prody.matchAlign(modelPDB, targetPDB, tarsel='calpha')
             mapmodel = match[1]
             maptarget = match[2]
+
+            #and copy NetSurfP and PSIPRED data from target to model
+            copyDataFromTarget(targetPDB, modelPDB)
 
         #run STRIDE
         prody.parseSTRIDE(prody.execSTRIDE(modelFilename, outputdir=tempdir),
@@ -97,15 +143,11 @@ def generateFeatures(models, target=None, output=None, distance=None):
             datadict['DSSPss'] = ss
 
 
-        #run NetSurfP
-        netsurfp.parseNetSurfP(netsurfp.execNetSurfP(modelFilename,
-                                                     outputdir=tempdir),
-                                                     modelPDB)
-
         if target:
             datadict['NetSurfP_exp'] = \
                 pd.Series(modelPDB.ca.getData('netsurfp_exposure')[mapmodel.getResindices()],
                           index=maptarget.getResindices())
+
             datadict['NetSurfP_asa'] = \
                 pd.Series(modelPDB.ca.getData('netsurfp_asa')[mapmodel.getResindices()],
                           index=maptarget.getResindices())
@@ -123,6 +165,10 @@ def generateFeatures(models, target=None, output=None, distance=None):
                           index=maptarget.getResindices())
 
         else:
+            #run NetSurfP
+            netsurfp.parseNetSurfP(netsurfp.execNetSurfP(modelFilename,
+                                                         outputdir=tempdir),
+                                                         modelPDB)
             datadict['NetSurfP_exp'] = \
                 pd.Series(modelPDB.ca.getData('netsurfp_exposure'))
             datadict['NetSurfP_asa'] = \
@@ -136,10 +182,6 @@ def generateFeatures(models, target=None, output=None, distance=None):
             datadict['NetSurfP_coil'] = \
                 pd.Series(modelPDB.ca.getData('netsurfp_coilscore'))
 
-        #run PSIPRED
-        psipred.parsePSIPRED(psipred.execPSIPRED(modelFilename,
-                                                 outputdir=tempdir),
-                                                     modelPDB)
         if target:
             datadict['PSIPRED_ss'] = \
                 pd.Series(modelPDB.ca.getData('psipred_ss')[mapmodel.getResindices()],
@@ -154,6 +196,10 @@ def generateFeatures(models, target=None, output=None, distance=None):
                 pd.Series(modelPDB.ca.getData('psipred_strandscore')[mapmodel.getResindices()],
                           index=maptarget.getResindices())
         else:
+            #run PSIPRED
+            psipred.parsePSIPRED(psipred.execPSIPRED(modelFilename,
+                                                     outputdir=tempdir),
+                                                         modelPDB)
             datadict['PSIPRED_ss'] = \
                 pd.Series(modelPDB.ca.getData('psipred_ss'))
             datadict['PSIPRED_coilscore'] = \
@@ -163,15 +209,15 @@ def generateFeatures(models, target=None, output=None, distance=None):
             datadict['PSIPRED_strandscore'] = \
                 pd.Series(modelPDB.ca.getData('psipred_strandscore'))
 
-        #remove temporary directory
-        shutil.rmtree(tempdir, ignore_errors=True)
-
         if target:
             datadict['ClassLabel'] = pd.Series((np.abs(
                 prody.calcDistance(maptarget.copy(), mapmodel.copy())) < distance).astype(int),
                 index=maptarget.getResindices())
 
         dataframe = pd.concat([dataframe, pd.DataFrame(datadict)])
+
+    #remove temporary directory
+    shutil.rmtree(tempdir, ignore_errors=True)
 
     if output:
         dataframe.to_csv(output, index=False, quoting=csv.QUOTE_NONNUMERIC)
