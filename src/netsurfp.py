@@ -93,7 +93,7 @@ def parseNetSurfP(netsurfp, ag):
             continue
 
         chainid = seqname.split('_')
-        chainid = chainid[1] if len(chainid) == 2 else ' '
+        chainid = chainid[1] if chainid[1].strip() == 2 else ' '
 
         if ag.ca.copy()[chainid].getSequence()[resindex - 1].upper() != resname.upper():
             continue
@@ -120,3 +120,10 @@ def parseNetSurfP(netsurfp, ag):
 def performNetSurfP(pdb):
     pdb = fetchPDB(pdb, compressed=False)
     return parseNetSurfP(execNetSurfP(pdb), parsePDB(pdb))
+
+
+if __name__ == '__main__':
+    from prody import *
+    target = parsePDB('../tests/T0644TS024_1-D1')
+    parseNetSurfP(execNetSurfP('../tests/T0644TS024_1-D1'), target)
+    print target.ca.getData('netsurfp_exp')
