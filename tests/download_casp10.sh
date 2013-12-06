@@ -1,4 +1,4 @@
-#!/bin/basho
+#!/bin/bash
 
 set -eu
 
