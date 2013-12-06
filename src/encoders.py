@@ -21,7 +21,7 @@ DSSPssEncoder = LabelEncoder()
 DSSPssEncoder.fit(['H', 'B', 'E', 'G', 'I', 'T', 'S', '-'])
 
 STRIDEssEncoder = LabelEncoder()
-STRIDEssEncoder.fit(['H', 'B', 'E', 'G', 'I', 'T', 'S', 'C', 'b'])
+STRIDEssEncoder.fit(['H', 'B', 'E', 'G', 'I', 'T', 'S', 'C', 'b', '-'])
 
 NetSurfPExpEncoder = LabelEncoder()
 NetSurfPExpEncoder.fit(['E', 'B', '-'])

@@ -21,7 +21,7 @@ from __future__ import print_function
 import argparse
 import sys
 
-from generateTraining import generateFeatures
+from generateTraining import generateTrainingSet
 from train import train
 from predict import predict
 
@@ -42,9 +42,9 @@ generatetraining = subparsers.add_parser('generatetraining',
 generatetraining.add_argument('-t', '--target', help='Target structure in '
                               'PDB format.', required=True)
 
-generatetraining.add_argument('-m', '--models', help='Model structures in PDB '
-                              'format. Multiple files can be separated by '
-                              'comma.', required=True)
+generatetraining.add_argument('-m', '--model', help='Model structure(s) in'
+                              ' PDB format. Multiple files can be given.',
+                              required=True, nargs='+')
 
 generatetraining.add_argument('-o', '--output',
                               help='Name of the output file in CSV format.',
@@ -53,7 +53,8 @@ generatetraining.add_argument('-o', '--output',
 generatetraining.add_argument('-d', '--distance',
                               help='Maximum distance between target and model'
                               ' atoms to determine class labels.'
-                              ' Default value is 3.5 angstrom.', default=3.5)
+                              ' Default value is 3.5 angstrom.', default=3.5,
+                              type=float)
 
 # train subcommand ############################
 trainCommand = subparsers.add_parser('train', help='Trains a RandomForest '
@@ -69,7 +70,7 @@ trainCommand.add_argument('-o', '--output', help='RandomForest output file in '
                           'pickle format.', required=True)
 
 trainCommand.add_argument('-n', '--ntrees', help='Number of trees in the '
-                          'forest. Default: 100', default=100)
+                          'forest. Default: 100', default=100, type=int)
 
 # predict subcommand ############################
 predictCommand = subparsers.add_parser('predict', help='Predicts the quality '
@@ -79,24 +80,26 @@ predictCommand.add_argument('-r', '--randomforest',
                             help='RandomForest input file in pickle format.',
                             required=True)
 predictCommand.add_argument('-m', '--model',
-                            help='Model file to be predicted in PDB format',
-                            required=True)
+                            help='Model file(s) to be predicted in PDB format',
+                            required=True, nargs='+')
 predictCommand.add_argument('-o', '--output',
-                            help='Model quality output file in CSV format.',
-                            required=True)
+                            help='Model quality output file(s) in CSV format.'
+                            'If not supplied, output file name will be based '
+                            'on model file name.', nargs='*')
 
 args = parser.parse_args()
 
 
 if args.subcommand == 'generatetraining':
-    generateFeatures(args.models, target=args.target, output=args.output,
-                     distance=float(args.distance))
+    generateTrainingSet(args.model, target=args.target,
+                        distance=args.distance, output=args.output)
 
 elif args.subcommand == 'train':
-    train(args.training, int(args.ntrees), args.output)
+    train(args.training, args.ntrees, args.output)
 
 elif args.subcommand == 'predict':
-    predict(args.randomforest, args.model, args.output)
+    predict(args.randomforest, args.model, outputs=args.output,
+            saveOutput=True)
 
 else:
     sys.exit('Invalid subcommand.')

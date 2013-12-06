@@ -16,6 +16,7 @@
 
 import cPickle as pickle
 import csv
+import os
 import pandas as pd
 
 from encoders import MQAPmapper
@@ -24,18 +25,34 @@ from generateTraining import generateFeatures
 #needed for pickle to reconstruct RandomForest object from the pickle file
 from sklearn.ensemble import RandomForestClassifier
 
-def predict(rfFilename, modelFilename, outputFile=None):
+def predict(rfFilename, models, outputs=None, saveOutput=False):
+    data = []
+    assert isinstance(models, list), 'models parameter must be a list'
+    assert isinstance(outputs, (list, None)), ('outputs parameter must be '
+                                               'a list or None')
+
+    if isinstance(outputs, list):
+        assert len(models) == len(outputs), ('Number of models and number of'
+                                            ' output file names do not match.')
 
     # load trained RandomForest file in pickle format
     with open(rfFilename) as rfFile:
         rf = pickle.load(rfFile)
 
-    data = generateFeatures(modelFilename)
-    prediction = rf.predict(MQAPmapper.transform(data))
-    data['ClassLabel'] = pd.Series(prediction)
+    for i, modelFilename in enumerate(models):
+        newdata = generateFeatures(modelFilename)
+        prediction = rf.predict(MQAPmapper.transform(newdata))
+        newdata['ClassLabel'] = pd.Series(prediction)
 
-    if outputFile:
-        data.to_csv(outputFile, index=False, quoting=csv.QUOTE_NONNUMERIC)
+        if saveOutput:
+            if outputs: out = outputs[i]
+            else:
+                filename, ext = os.path.splitext(modelFilename)
+                if ext != 'csv': out = filename + '.csv'
+                else: out = filename + 'PREDICTION.csv'
+
+            newdata.to_csv(out, index=False, quoting=csv.QUOTE_NONNUMERIC)
+
+        data.append(newdata)
 
     return data
-

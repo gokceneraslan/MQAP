@@ -35,23 +35,24 @@ PDB file and its predictions which are also in PDB format.
 
     $ ./mqap generatetraining -h
 
-    usage: mqap.py generatetraining [-h] -t TARGET -m MODELS -o OUTPUT
-                                    [-d DISTANCE]
+    usage: mqap generatetraining [-h] -t TARGET -m MODEL [MODEL ...] -o OUTPUT
+                                 [-d DISTANCE]
 
     optional arguments:
       -h, --help            show this help message and exit
       -t TARGET, --target TARGET
                             Target structure in PDB format.
-      -m MODELS, --models MODELS
-                            Model structures in PDB format. Multiple files can be
-                            separated by comma.
+      -m MODEL [MODEL ...], --model MODEL [MODEL ...]
+                            Model structure(s) in PDB format. Multiple files can
+                            be given.
       -o OUTPUT, --output OUTPUT
                             Name of the output file in CSV format.
       -d DISTANCE, --distance DISTANCE
                             Maximum distance between target and model atoms to
                             determine class labels. Default value is 3.5 angstrom.
 
-Multiple model files can be specified using a comma-separated list of file names. 
+
+Multiple model files can be specified using a list of file names. 
 This command first aligns all model structures onto the target structure and
 computes local structure features such as surface accessibility and secondary
 structure of residues. Output is saved into a CSV so that :code:`train` command can
@@ -93,16 +94,19 @@ labels.
 
     $ ./mqap predict -h
 
-    usage: mqap.py predict [-h] -r RANDOMFOREST -m MODEL -o OUTPUT
+    usage: mqap predict [-h] -r RANDOMFOREST -m MODEL [MODEL ...]
+                        [-o [OUTPUT [OUTPUT ...]]]
 
     optional arguments:
       -h, --help            show this help message and exit
       -r RANDOMFOREST, --randomforest RANDOMFOREST
                             RandomForest input file in pickle format.
-      -m MODEL, --model MODEL
-                            Model file to be predicted in PDB format
-      -o OUTPUT, --output OUTPUT
-                            Model quality output file in CSV format.
+      -m MODEL [MODEL ...], --model MODEL [MODEL ...]
+                            Model file(s) to be predicted in PDB format
+      -o [OUTPUT [OUTPUT ...]], --output [OUTPUT [OUTPUT ...]]
+                            Model quality output file(s) in CSV format.If not
+                            supplied, output file name will be based on model file
+                            name.
 
 Requirements:
 =============
