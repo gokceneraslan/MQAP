@@ -26,7 +26,7 @@ from encoders import MQAPmapper
 
 def train(trainingFilename, ntrees, outputFile=None):
     data = pd.read_csv(trainingFilename, quoting=csv.QUOTE_NONNUMERIC)
-    print(data)
+
     columns = list(data.columns.values)
     assert len(data) > 0, 'Training set must have at least one instance!'
 

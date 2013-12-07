@@ -24,6 +24,7 @@ import sys
 from generateTraining import generateTrainingSet
 from train import train
 from predict import predict
+from rank import rank
 
 # we are using argparse module to implement argument parsing
 parser = argparse.ArgumentParser()
@@ -87,6 +88,17 @@ predictCommand.add_argument('-o', '--output',
                             'If not supplied, output file name will be based '
                             'on model file name.', nargs='*')
 
+# rank subcommand ############################
+rankCommand = subparsers.add_parser('rank', help='Rank given prediction '
+                                       'outputs in CSV format.')
+
+rankCommand.add_argument('-p', '--predictions',
+                            help='Prediction output file(s) produced by '
+                            'predict command.', nargs='+', metavar='PREDICTION')
+rankCommand.add_argument('-o', '--output',
+                            help='Ranking output file in CSV format.',
+                            required=True)
+
 args = parser.parse_args()
 
 
@@ -100,6 +112,9 @@ elif args.subcommand == 'train':
 elif args.subcommand == 'predict':
     predict(args.randomforest, args.model, outputs=args.output,
             saveOutput=True)
+
+elif args.subcommand == 'rank':
+    rank(args.predictions, args.output)
 
 else:
     sys.exit('Invalid subcommand.')
