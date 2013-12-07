@@ -102,18 +102,18 @@ rankCommand.add_argument('-o', '--output',
 args = parser.parse_args()
 
 
-if args.subcommand == 'generatetraining':
-    generateTrainingSet(args.model, target=args.target,
+if args.subcommand.lower() == 'generatetraining':
+    generateTrainingSet({args.target: args.model},
                         distance=args.distance, output=args.output)
 
-elif args.subcommand == 'train':
+elif args.subcommand.lower() == 'train':
     train(args.training, args.ntrees, args.output)
 
-elif args.subcommand == 'predict':
+elif args.subcommand.lower() == 'predict':
     predict(args.randomforest, args.model, outputs=args.output,
             saveOutput=True)
 
-elif args.subcommand == 'rank':
+elif args.subcommand.lower() == 'rank':
     rank(args.predictions, args.output)
 
 else:

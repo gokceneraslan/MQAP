@@ -137,9 +137,7 @@ def generateFeatures(modelFilename):
 
 # TODO: so many code duplication in generateFeatures & generateTrainingSet
 # refoactor to reuse common code
-def generateTrainingSet(models, target, distance, output=None):
-    targetPDB = prody.parsePDB(target)
-    assert distance, "Distance is not valid"
+def generateTrainingSet(inputdict, distance, output=None):
 
     devnull = open(os.devnull, 'w')
     subprocess.check_call('dssp --version', shell=True, stdout=devnull,
@@ -153,116 +151,119 @@ def generateTrainingSet(models, target, distance, output=None):
     devnull.close()
 
     dataframe = pd.DataFrame()
-    #dataframe = pd.DataFrame(columns=['STRIDEarea', 'STRIDEss', 'DSSPacc',
-    #                                      'DSSPss', 'ClassLabel'])
 
-    tempdir = tempfile.mkdtemp()
+    for target, models in inputdict.items():
 
-    # we don't want to run NetSurfP and PSIPRED over and over again for all
-    # model structures. we compute them for target structure and just reuse
-    # on model structures
-    netsurfp.parseNetSurfP(netsurfp.execNetSurfP(target, outputdir=tempdir),
+        targetPDB = prody.parsePDB(target)
+        assert distance, "Distance is not valid"
+
+        tempdir = tempfile.mkdtemp()
+
+        # we don't want to run NetSurfP and PSIPRED over and over again for all
+        # model structures. we compute them for target structure and just reuse
+        # on model structures
+        netsurfp.parseNetSurfP(netsurfp.execNetSurfP(target, outputdir=tempdir),
+                                                     targetPDB)
+
+        psipred.parsePSIPRED(psipred.execPSIPRED(target, outputdir=tempdir),
                                                  targetPDB)
 
-    psipred.parsePSIPRED(psipred.execPSIPRED(target, outputdir=tempdir),
-                                             targetPDB)
+        for i, modelFilename in enumerate(models):
+            datadict = {}
+            modelPDB = prody.parsePDB(modelFilename)
 
-    for i, modelFilename in enumerate(models):
-        datadict = {}
-        modelPDB = prody.parsePDB(modelFilename)
+            if not modelPDB:
+                print('Model file %s cannot be parsed, skipping...' %
+                      modelFilename)
+                continue
 
-        if not modelPDB:
-            print('Model file %s cannot be parsed, skipping...' %
-                  modelFilename)
-            continue
+            #if model has no chainID, let's assign one. That makes STRIDE parser
+            #happy
+            if np.unique(modelPDB.getChids()) == ' ':
+                modelPDB.all.setChids('A')
+                modelFilename = os.path.join(tempdir,
+                                             os.path.basename(modelFilename))
 
-        #if model has no chainID, let's assign one. That makes STRIDE parser
-        #happy
-        if np.unique(modelPDB.getChids()) == ' ':
-            modelPDB.all.setChids('A')
-            modelFilename = os.path.join(tempdir,
-                                         os.path.basename(modelFilename))
+                modelFilename = prody.writePDB(modelFilename,
+                                               modelPDB,
+                                               autoext=False)
 
-            modelFilename = prody.writePDB(modelFilename,
-                                           modelPDB,
-                                           autoext=False)
+            #superimpose model onto target structure
+            match = prody.matchAlign(modelPDB, targetPDB, tarsel='calpha')
+            mapmodel = match[1]
+            maptarget = match[2]
 
-        #superimpose model onto target structure
-        match = prody.matchAlign(modelPDB, targetPDB, tarsel='calpha')
-        mapmodel = match[1]
-        maptarget = match[2]
+            #and copy NetSurfP and PSIPRED data from target to model
+            copyDataFromTarget(targetPDB, modelPDB)
 
-        #and copy NetSurfP and PSIPRED data from target to model
-        copyDataFromTarget(targetPDB, modelPDB)
+            #run STRIDE
+            prody.parseSTRIDE(prody.execSTRIDE(modelFilename, outputdir=tempdir),
+                                               modelPDB)
 
-        #run STRIDE
-        prody.parseSTRIDE(prody.execSTRIDE(modelFilename, outputdir=tempdir),
-                                           modelPDB)
+            datadict['STRIDEarea'] = \
+                pd.Series(modelPDB.ca.getData('stride_area')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
 
-        datadict['STRIDEarea'] = \
-            pd.Series(modelPDB.ca.getData('stride_area')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
+            ss = pd.Series(mapmodel.getSecstrs(), index=maptarget.getResindices())
+            ss[ss == ''] = '-' #empty strings cause trouble in csv load/save
+            datadict['STRIDEss'] = ss
 
-        ss = pd.Series(mapmodel.getSecstrs(), index=maptarget.getResindices())
-        ss[ss == ''] = '-' #empty strings cause trouble in csv load/save
-        datadict['STRIDEss'] = ss
+            #run DSSP
+            prody.parseDSSP(prody.execDSSP(modelFilename, outputdir=tempdir), modelPDB)
 
-        #run DSSP
-        prody.parseDSSP(prody.execDSSP(modelFilename, outputdir=tempdir), modelPDB)
+            datadict['DSSPacc'] = \
+                pd.Series(modelPDB.ca.getData('dssp_acc')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
 
-        datadict['DSSPacc'] = \
-            pd.Series(modelPDB.ca.getData('dssp_acc')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
-
-        ss = pd.Series(mapmodel.getSecstrs(), index=maptarget.getResindices())
-        ss[ss == ''] = '-' #empty strings cause trouble in csv load/save
-        datadict['DSSPss'] = ss
+            ss = pd.Series(mapmodel.getSecstrs(), index=maptarget.getResindices())
+            ss[ss == ''] = '-' #empty strings cause trouble in csv load/save
+            datadict['DSSPss'] = ss
 
 
-        #save NetSurfP data
-        datadict['NetSurfP_exp'] = \
-            pd.Series(modelPDB.ca.getData('netsurfp_exposure')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
+            #save NetSurfP data
+            datadict['NetSurfP_exp'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_exposure')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
 
-        datadict['NetSurfP_asa'] = \
-            pd.Series(modelPDB.ca.getData('netsurfp_asa')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
-        datadict['NetSurfP_rsa'] = \
-            pd.Series(modelPDB.ca.getData('netsurfp_rsa')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
-        datadict['NetSurfP_alpha'] = \
-            pd.Series(modelPDB.ca.getData('netsurfp_alphascore')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
-        datadict['NetSurfP_beta'] = \
-            pd.Series(modelPDB.ca.getData('netsurfp_betascore')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
-        datadict['NetSurfP_coil'] = \
-            pd.Series(modelPDB.ca.getData('netsurfp_coilscore')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
+            datadict['NetSurfP_asa'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_asa')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['NetSurfP_rsa'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_rsa')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['NetSurfP_alpha'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_alphascore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['NetSurfP_beta'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_betascore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['NetSurfP_coil'] = \
+                pd.Series(modelPDB.ca.getData('netsurfp_coilscore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
 
-        #save PSIPRED data
-        datadict['PSIPRED_ss'] = \
-            pd.Series(modelPDB.ca.getData('psipred_ss')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
-        datadict['PSIPRED_coilscore'] = \
-            pd.Series(modelPDB.ca.getData('psipred_coilscore')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
-        datadict['PSIPRED_helixscore'] = \
-            pd.Series(modelPDB.ca.getData('psipred_helixscore')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
-        datadict['PSIPRED_strandscore'] = \
-            pd.Series(modelPDB.ca.getData('psipred_strandscore')[mapmodel.getResindices()],
-                      index=maptarget.getResindices())
+            #save PSIPRED data
+            datadict['PSIPRED_ss'] = \
+                pd.Series(modelPDB.ca.getData('psipred_ss')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['PSIPRED_coilscore'] = \
+                pd.Series(modelPDB.ca.getData('psipred_coilscore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['PSIPRED_helixscore'] = \
+                pd.Series(modelPDB.ca.getData('psipred_helixscore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
+            datadict['PSIPRED_strandscore'] = \
+                pd.Series(modelPDB.ca.getData('psipred_strandscore')[mapmodel.getResindices()],
+                          index=maptarget.getResindices())
 
-        #Compute class labels based on the distance argument
-        datadict['ClassLabel'] = pd.Series((np.abs(
-            prody.calcDistance(maptarget.copy(), mapmodel.copy())) < distance).astype(int),
-            index=maptarget.getResindices())
+            #Compute class labels based on the distance argument
+            datadict['ClassLabel'] = pd.Series((np.abs(
+                prody.calcDistance(maptarget.copy(), mapmodel.copy())) < distance).astype(int),
+                index=maptarget.getResindices())
 
-        dataframe = pd.concat([dataframe, pd.DataFrame(datadict)])
+            dataframe = pd.concat([dataframe, pd.DataFrame(datadict)])
 
-    #remove temporary directory
-    shutil.rmtree(tempdir, ignore_errors=True)
+        #remove temporary directory
+        shutil.rmtree(tempdir, ignore_errors=True)
 
     if output:
         dataframe.to_csv(output, index=False, quoting=csv.QUOTE_NONNUMERIC)
