@@ -141,6 +141,17 @@ def generateTrainingSet(models, target, distance, output=None):
     targetPDB = prody.parsePDB(target)
     assert distance, "Distance is not valid"
 
+    devnull = open(os.devnull, 'w')
+    subprocess.check_call('dssp --version', shell=True, stdout=devnull,
+                          stderr=devnull)
+    subprocess.check_call('stride -h', shell=True, stdout=devnull,
+                          stderr=devnull)
+    subprocess.check_call('netsurfp -h', shell=True, stdout=devnull,
+                          stderr=devnull)
+    subprocess.check_call('runpsipred', shell=True, stdout=devnull,
+                          stderr=devnull)
+    devnull.close()
+
     dataframe = pd.DataFrame()
     #dataframe = pd.DataFrame(columns=['STRIDEarea', 'STRIDEss', 'DSSPacc',
     #                                      'DSSPss', 'ClassLabel'])
