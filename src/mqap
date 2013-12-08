@@ -25,6 +25,7 @@ from generateTraining import generateTrainingSet
 from train import train
 from predict import predict
 from rank import rank
+from crossvalidation import crossvalidate
 
 # we are using argparse module to implement argument parsing
 parser = argparse.ArgumentParser()
@@ -99,6 +100,36 @@ rankCommand.add_argument('-o', '--output',
                             help='Ranking output file in CSV format.',
                             required=True)
 
+# cv subcommand ############################
+cvCommand = subparsers.add_parser('cv', help='Perform a k-fold cross '
+                                    'validation using given CSV file.')
+
+cvCommand.add_argument('-i', '--input',
+                            help='In the input file, first column represents '
+                                 'target file while the rest represents model '
+                                 'files.', required=True)
+cvCommand.add_argument('-k', '--fold', help='Fold size of k-fold CV. Default:5',
+                            default=5, type=int)
+cvCommand.add_argument('-o', '--output',
+                            help='Ranking output file in CSV format.',
+                            required=True)
+cvCommand.add_argument('-t', '--trainingdir',
+                            help='If specified, all training CSVs will be saved '
+                                 'into this dir.')
+cvCommand.add_argument('-r', '--randomforestdir',
+                            help='If specified, all trained RFs will be saved '
+                                 'into this dir in pickle format.')
+cvCommand.add_argument('-p', '--predictiondir',
+                            help='If specified, all predictions will be saved '
+                                 'into this dir.')
+cvCommand.add_argument('-d', '--distance',
+                              help='Maximum distance between target and model'
+                              ' atoms to determine class labels.'
+                              ' Default value is 3.5 angstrom.', default=3.5,
+                              type=float)
+cvCommand.add_argument('-n', '--ntrees', help='Number of trees in the '
+                          'forest. Default: 100', default=100, type=int)
+
 args = parser.parse_args()
 
 
@@ -115,6 +146,11 @@ elif args.subcommand.lower() == 'predict':
 
 elif args.subcommand.lower() == 'rank':
     rank(args.predictions, args.output)
+
+elif args.subcommand.lower() == 'cv':
+    crossvalidate(args.input, args.fold, args.output, args.distance,
+                  args.ntrees, args.trainingdir, args.randomforestdir,
+                  args.predictiondir)
 
 else:
     sys.exit('Invalid subcommand.')

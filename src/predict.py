@@ -25,7 +25,7 @@ from generateTraining import generateFeatures
 #needed for pickle to reconstruct RandomForest object from the pickle file
 from sklearn.ensemble import RandomForestClassifier
 
-def predict(rfFilename, models, outputs=None, saveOutput=False):
+def predict(rf, models, outputs=None, saveOutput=False, outputdir=None):
     data = []
     assert isinstance(models, list), 'models parameter must be a list'
     assert isinstance(outputs, (list, None)), ('outputs parameter must be '
@@ -35,9 +35,12 @@ def predict(rfFilename, models, outputs=None, saveOutput=False):
         assert len(models) == len(outputs), ('Number of models and number of'
                                             ' output file names do not match.')
 
-    # load trained RandomForest file in pickle format
-    with open(rfFilename) as rfFile:
-        rf = pickle.load(rfFile)
+    assert isinstance(rf, (str, RandomForestClassifier)), 'RF has invalid type'
+
+    if os.path.isfile(rf):
+        # load trained RandomForest file in pickle format
+        with open(rf) as rfFile:
+            rf = pickle.load(rfFile)
 
     for i, modelFilename in enumerate(models):
         newdata = generateFeatures(modelFilename)
@@ -50,6 +53,9 @@ def predict(rfFilename, models, outputs=None, saveOutput=False):
                 filename, ext = os.path.splitext(modelFilename)
                 if ext != 'csv': out = filename + '.csv'
                 else: out = filename + 'PREDICTION.csv'
+
+            if outputdir:
+                out = os.path.join(outputdir, os.path.basename(out))
 
             newdata.to_csv(out, index=False, quoting=csv.QUOTE_NONNUMERIC)
 

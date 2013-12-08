@@ -42,7 +42,9 @@ def copyDataFromTarget(target, model, labels=('psipred', 'netsurfp')):
         if tchain.getChid() in [x.getChid() for x in model.iterChains()]:
             mchain = tchain.getChid()
         else:
-            mchain = prody.matchChains(model, target[tchain.getChid()])[0][0]
+            mchain = prody.matchChains(model, target[tchain.getChid()],
+                                       seqid=50, overlap=20)[0][0]
+
             mchain = mchain.copy().getChids()[0]
 
         for tres in tchain.ca.copy().iterResidues():
@@ -189,7 +191,8 @@ def generateTrainingSet(inputdict, distance, output=None):
                                                autoext=False)
 
             #superimpose model onto target structure
-            match = prody.matchAlign(modelPDB, targetPDB, tarsel='calpha')
+            match = prody.matchAlign(modelPDB, targetPDB, tarsel='calpha',
+                                     seqid=50, overlap=20)
             mapmodel = match[1]
             maptarget = match[2]
 

@@ -24,8 +24,11 @@ from sklearn.ensemble import RandomForestClassifier
 
 from encoders import MQAPmapper
 
-def train(trainingFilename, ntrees, outputFile=None):
-    data = pd.read_csv(trainingFilename, quoting=csv.QUOTE_NONNUMERIC)
+def train(training, ntrees, outputFile=None):
+    if isinstance(training, pd.DataFrame):
+        data = training
+    else:
+        data = pd.read_csv(training, quoting=csv.QUOTE_NONNUMERIC)
 
     columns = list(data.columns.values)
     assert len(data) > 0, 'Training set must have at least one instance!'
