@@ -11,7 +11,7 @@ confProDy(verbosity='none')
 
 with open(sys.argv[2], 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quotechar='"')
-    writer.writerow(['Target File', 'Models'])
+    #writer.writerow(['Target File', 'Models'])
 
     for root, dirs, files in os.walk(caspdir):
         if root == caspdir:

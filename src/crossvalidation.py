@@ -41,8 +41,13 @@ def crossvalidate(input, fold, output, distance, ntrees, trainingdir,
             generateTrainingInput[cases[train_index][0]] = \
                                   cases[train_index][1]
 
+        trainingout = None
+        if trainingdir:
+            trainingout = os.path.join(trainingdir, 'cv-fold%d-training.csv' %
+                                                    iteration)
+
         trainingset = generateTrainingSet(generateTrainingInput, distance,
-                                          output=trainingdir)
+                                          output=trainingout)
         rfoutput = None
         if randomforestdir:
             rfoutput = os.path.join(randomforestdir, 'cv-fold%d-rf.pickle' %
@@ -56,3 +61,5 @@ def crossvalidate(input, fold, output, distance, ntrees, trainingdir,
         predictions = predict(rf, testmodels, saveOutput=predictiondir,
                               outputdir=predictiondir)
         iteration += 1
+
+    return predictions
