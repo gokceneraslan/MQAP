@@ -18,12 +18,14 @@ import os
 import csv
 
 from sklearn.cross_validation import KFold
+import pandas as pd
+import joblib
 
 from generateTraining import generateTrainingSet
 from train import train
 from predict import predict
 
-def crossvalidate(input, fold, output, distance, ntrees, trainingdir,
+def crossvalidate(input, fold, output, distance, ntrees, reuse, trainingdir,
                   randomforestdir, predictiondir):
     cases = []
 
@@ -46,14 +48,21 @@ def crossvalidate(input, fold, output, distance, ntrees, trainingdir,
             trainingout = os.path.join(trainingdir, 'cv-fold%d-training.csv' %
                                                     iteration)
 
-        trainingset = generateTrainingSet(generateTrainingInput, distance,
-                                          output=trainingout)
+        if reuse and trainingout and os.path.isfile(trainingout):
+            trainingset = pd.read_csv(trainingout, quoting=csv.QUOTE_NONNUMERIC)
+        else:
+            trainingset = generateTrainingSet(generateTrainingInput, distance,
+                                              output=trainingout)
         rfoutput = None
         if randomforestdir:
-            rfoutput = os.path.join(randomforestdir, 'cv-fold%d-rf.pickle' %
+            rfoutput = os.path.join(randomforestdir, 'cv-fold%d-rf.joblib' %
                                           iteration)
 
-        rf = train(trainingset, ntrees, rfoutput)
+        if reuse and rfoutput and os.path.isfile(rfoutput):
+            rf = joblib.load(rfoutput)
+        else:
+            rf = train(trainingset, ntrees, rfoutput)
+
         testmodels = []
         for test_index in test_indices:
             testmodels += cases[test_index][1]

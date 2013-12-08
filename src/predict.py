@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import cPickle as pickle
+import joblib
 import csv
 import os
 import pandas as pd
@@ -22,7 +22,7 @@ import pandas as pd
 from encoders import MQAPmapper
 from generateTraining import generateFeatures
 
-#needed for pickle to reconstruct RandomForest object from the pickle file
+#needed for Joblib to reconstruct RandomForest object from the Joblib file
 from sklearn.ensemble import RandomForestClassifier
 
 def predict(rf, models, outputs=None, saveOutput=False, outputdir=None):
@@ -38,10 +38,9 @@ def predict(rf, models, outputs=None, saveOutput=False, outputdir=None):
 
     assert isinstance(rf, (str, RandomForestClassifier)), 'RF has invalid type'
 
-    if os.path.isfile(rf):
-        # load trained RandomForest file in pickle format
-        with open(rf) as rfFile:
-            rf = pickle.load(rfFile)
+    if isinstance(rf, str) and os.path.isfile(rf):
+        # load trained RandomForest file in Joblib format
+        rf = joblib.load(rf)
 
     for i, modelFilename in enumerate(models):
         newdata = generateFeatures(modelFilename)

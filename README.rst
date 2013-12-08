@@ -23,7 +23,7 @@ Command line interface:
       {generatetraining,train,predict}
         generatetraining    Generates training set
         train               Trains a RandomForest based on given training set and
-                            produces a Pickle file to be used in prediction step.
+                            produces a Joblib file to be used in prediction step.
         predict             Predicts the quality of given model file in PDB
                             format.
 
@@ -76,17 +76,17 @@ using scikit-learn framework.
                             Training set in CSV format. Class labels must be at
                             the last column.
       -o OUTPUT, --output OUTPUT
-                            RandomForest output file in pickle format.
+                            RandomForest output file in Joblib format.
       -n NTREES, --ntrees NTREES
                             Number of trees in the forest. Default: 100
 
-Trained RandomForest instance is saved into the output file in pickle format
+Trained RandomForest instance is saved into the output file in Joblib format
 so that the next step (:code:`predict` command) can use it to predict assessment
 scores of a new model file in PDB format. Number of trees in the random forest
 can also be specified using :code:`--ntrees/-n` parameter.
 
 :code:`predict` command requires a new model file of which assesment scores will be
-computed. Another required parameter is the random forest file in pickle
+computed. Another required parameter is the random forest file in Joblib
 format. Output is the structural features as well as the predicted class
 labels.
 
@@ -100,7 +100,7 @@ labels.
     optional arguments:
       -h, --help            show this help message and exit
       -r RANDOMFOREST, --randomforest RANDOMFOREST
-                            RandomForest input file in pickle format.
+                            RandomForest input file in Joblib format.
       -m MODEL [MODEL ...], --model MODEL [MODEL ...]
                             Model file(s) to be predicted in PDB format
       -o [OUTPUT [OUTPUT ...]], --output [OUTPUT [OUTPUT ...]]
@@ -116,7 +116,9 @@ MQAP requires following Python packages and command line tools:
 - `pandas <http://pandas.pydata.org/>`_ (for generating DataFrames and loading from/saving to CSV files conveniently)
 - `scikit-learn <http://scikit-learn.org/>`_ (for classifying using RandomForestClassifier class)
 - numpy (for usual matrix operations)
-- `ProDy <http://www.csb.pitt.edu/prody/>`_ (for PDB parsing, alingment and manipulation)
+- `ProDy <http://www.csb.pitt.edu/prody/>`_ (for PDB parsing, alignment and manipulation)
+- `Joblib <http://pythonhosted.org/joblib/>`_ (for dumping/loading
+  RandomForest files)
 - `DSSP <http://swift.cmbi.ru.nl/gv/dssp/>`_ executable (for computing surface
   accessibility and secondary structure) which must be in :code:`$PATH` with name :code:`dssp`
 - `STRIDE <http://webclu.bio.wzw.tum.de/stride/>`_ executable (for computing surface

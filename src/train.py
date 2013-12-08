@@ -16,7 +16,7 @@
 
 from __future__ import print_function
 
-import cPickle as pickle
+import joblib
 import csv
 
 import pandas as pd
@@ -44,7 +44,6 @@ def train(training, ntrees, outputFile=None):
     rf.fit(MQAPmapper.transform(data), labels)
 
     if outputFile:
-        with open(outputFile, 'wb') as output:
-            pickle.dump(rf, output, pickle.HIGHEST_PROTOCOL)
+        joblib.dump(rf, outputFile, compress=5)
 
     return rf

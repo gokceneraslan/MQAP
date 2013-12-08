@@ -61,7 +61,7 @@ generatetraining.add_argument('-d', '--distance',
 # train subcommand ############################
 trainCommand = subparsers.add_parser('train', help='Trains a RandomForest '
                                      'based on given training set and '
-                                     'produces a Pickle file to be used in '
+                                     'produces a Joblib file to be used in '
                                      'prediction step.')
 
 trainCommand.add_argument('-t', '--training',
@@ -69,7 +69,7 @@ trainCommand.add_argument('-t', '--training',
                           ' be at the last column.', required=True)
 
 trainCommand.add_argument('-o', '--output', help='RandomForest output file in '
-                          'pickle format.', required=True)
+                          'Joblib format.', required=True)
 
 trainCommand.add_argument('-n', '--ntrees', help='Number of trees in the '
                           'forest. Default: 100', default=100, type=int)
@@ -79,7 +79,7 @@ predictCommand = subparsers.add_parser('predict', help='Predicts the quality '
                                        'of given model file in PDB format.')
 
 predictCommand.add_argument('-r', '--randomforest',
-                            help='RandomForest input file in pickle format.',
+                            help='RandomForest input file in Joblib format.',
                             required=True)
 predictCommand.add_argument('-m', '--model',
                             help='Model file(s) to be predicted in PDB format',
@@ -118,7 +118,7 @@ cvCommand.add_argument('-t', '--trainingdir',
                                  'into this dir.')
 cvCommand.add_argument('-r', '--randomforestdir',
                             help='If specified, all trained RFs will be saved '
-                                 'into this dir in pickle format.')
+                                 'into this dir in Joblib format.')
 cvCommand.add_argument('-p', '--predictiondir',
                             help='If specified, all predictions will be saved '
                                  'into this dir.')
@@ -129,6 +129,10 @@ cvCommand.add_argument('-d', '--distance',
                               type=float)
 cvCommand.add_argument('-n', '--ntrees', help='Number of trees in the '
                           'forest. Default: 100', default=100, type=int)
+cvCommand.add_argument('-u', '--reuse', help='If enabled, previously saved '
+                       'training/randomforest files are reused. '
+                       'Default: Disabled', action='store_true')
+
 
 args = parser.parse_args()
 
@@ -149,8 +153,8 @@ elif args.subcommand.lower() == 'rank':
 
 elif args.subcommand.lower() == 'cv':
     crossvalidate(args.input, args.fold, args.output, args.distance,
-                  args.ntrees, args.trainingdir, args.randomforestdir,
-                  args.predictiondir)
+                  args.ntrees, args.reuse, args.trainingdir,
+                  args.randomforestdir, args.predictiondir)
 
 else:
     sys.exit('Invalid subcommand.')
