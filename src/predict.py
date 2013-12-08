@@ -28,10 +28,11 @@ from sklearn.ensemble import RandomForestClassifier
 def predict(rf, models, outputs=None, saveOutput=False, outputdir=None):
     data = []
     assert isinstance(models, list), 'models parameter must be a list'
-    assert isinstance(outputs, (list, None)), ('outputs parameter must be '
-                                               'a list or None')
 
-    if isinstance(outputs, list):
+    assert outputs is None or isinstance(outputs, list), \
+         ('outputs parameter must be a list or None')
+
+    if outputs:
         assert len(models) == len(outputs), ('Number of models and number of'
                                             ' output file names do not match.')
 
