@@ -25,14 +25,20 @@ def rank(predictions, outputFilename):
 
     scores = [] #list of tuples: (prediction, score)
 
-    for predictionFile in predictions:
-        prediction = pd.read_csv(predictionFile, quoting=csv.QUOTE_NONNUMERIC)
-        predname = os.path.splitext(os.path.basename(predictionFile))[0]
+    for prediction in predictions:
+        if isinstance(prediction, str):
+            label = os.path.splitext(os.path.basename(prediction))[0]
+            prediction = pd.read_csv(prediction, quoting=csv.QUOTE_NONNUMERIC)
+        else:
+            assert isinstance(prediction, pd.DataFrame), ("Prediction has "
+                                                          "invalid type.")
+            label = prediction.label
+
         score = prediction.ClassLabel.values.mean()
-        if predname in (x[0] for x in scores):
-            predname += ":" + str(len([x for x in scores
-                                         if x[0].startswith(predname+':')])+1)
-        scores.append((predname, score))
+        if label in (x[0] for x in scores):
+            label += ":" + str(len([x for x in scores
+                                         if x[0].startswith(label+':')])+1)
+        scores.append((label, score))
 
     df = pd.DataFrame([x[0] for x in scores], columns=['Predictions'])
     df['Scores'] = [x[1] for x in scores]

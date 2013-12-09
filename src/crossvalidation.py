@@ -26,8 +26,9 @@ import joblib
 from generateTraining import generateTrainingSet
 from train import train
 from predict import predict
+from rank import rank
 
-def crossvalidate(input, fold, output, distance, ntrees, reuse, trainingdir,
+def crossvalidate(input, fold, outputdir, distance, ntrees, reuse, trainingdir,
                   randomforestdir, predictiondir):
     cases = []
 
@@ -37,7 +38,7 @@ def crossvalidate(input, fold, output, distance, ntrees, reuse, trainingdir,
             cases.append((row[0], row[1:]))
 
     iteration = 1
-    kfold = KFold(len(cases), n_folds=fold, shuffle=True)
+    kfold = KFold(len(cases), n_folds=fold)
     for train_indices, test_indices in kfold:
         generateTrainingInput = {}
 
@@ -68,7 +69,13 @@ def crossvalidate(input, fold, output, distance, ntrees, reuse, trainingdir,
             rf = train(trainingset, ntrees, rfoutput)
 
         for test_index in test_indices:
-            predict(rf, cases[test_index][1], saveOutput=predictiondir,
+            predictionList = predict(rf, cases[test_index][1], saveOutput=predictiondir,
                     outputdir=predictiondir, templateFile=cases[test_index][0])
+
+            for j, model in enumerate(predictionList):
+                model.label = os.path.basename(cases[test_index][1][j])
+
+            rank(predictionList, os.path.join(outputdir, '%s-ranking.csv' %
+                os.path.splitext(os.path.basename(cases[test_index][0]))[0]))
 
         iteration += 1
