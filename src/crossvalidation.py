@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import os
 import csv
 
@@ -49,6 +51,7 @@ def crossvalidate(input, fold, output, distance, ntrees, reuse, trainingdir,
                                                     iteration)
 
         if reuse and trainingout and os.path.isfile(trainingout):
+            print("Reusing training set CSV file %s..." % trainingout)
             trainingset = pd.read_csv(trainingout, quoting=csv.QUOTE_NONNUMERIC)
         else:
             trainingset = generateTrainingSet(generateTrainingInput, distance,
@@ -59,6 +62,7 @@ def crossvalidate(input, fold, output, distance, ntrees, reuse, trainingdir,
                                           iteration)
 
         if reuse and rfoutput and os.path.isfile(rfoutput):
+            print("Reusing RandomForest file %s..." % rfoutput)
             rf = joblib.load(rfoutput)
         else:
             rf = train(trainingset, ntrees, rfoutput)
