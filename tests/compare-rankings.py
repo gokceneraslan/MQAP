@@ -38,9 +38,9 @@ rank2 = file2['Predictions'].values
 encoded_rank1 = np.array(range(len(rank1)))
 encoded_rank2 = np.array([np.where(rank1 == x)[0][0] for x in rank2])
 
-print encoded_rank1
-print '============'
-print encoded_rank2
+#print encoded_rank1
+#print '============'
+#print encoded_rank2
 
 sp, _ = scipy.stats.spearmanr(encoded_rank1, encoded_rank2)
 kd, _ = scipy.stats.kendalltau(encoded_rank1, encoded_rank2)
