@@ -11,21 +11,24 @@ Command line interface:
 
     $ ./mqap -h
 
-    usage: mqap.py [-h] {generatetraining,train,predict} ...
+    usage: mqap [-h] {generatetraining,train,predict,rank,cv} ...
 
     optional arguments:
       -h, --help            show this help message and exit
 
     Subcommands:
-      This program requires a mandatory subcommand (like git). See "./mqap.py
+      This program requires a mandatory subcommand (like git). See "./mqap
       <command> -h" to read about a specific subcommand.
 
-      {generatetraining,train,predict}
+      {generatetraining,train,predict,rank,cv}
         generatetraining    Generates training set
         train               Trains a RandomForest based on given training set and
                             produces a Joblib file to be used in prediction step.
         predict             Predicts the quality of given model file in PDB
                             format.
+        rank                Rank given prediction outputs in CSV format.
+        cv                  Perform a k-fold cross validation using given CSV
+                            file.
 
 First argument is a mandatory sub-command, similar to that of git or
 subversion CLI. :code:`generatetraining` command produces a CSV file out of a target 
@@ -107,6 +110,64 @@ labels.
                             Model quality output file(s) in CSV format.If not
                             supplied, output file name will be based on model file
                             name.
+
+:code:`rank` command computes a quality score per model file and sorts them
+accordingly. Output is written to the supplied file.
+
+.. code-block:: console
+
+    $ ./mqap rank -h
+
+    usage: mqap rank [-h] [-p PREDICTION [PREDICTION ...]] -o OUTPUT
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -p PREDICTION [PREDICTION ...], --predictions PREDICTION [PREDICTION ...]
+                            Prediction output file(s) produced by predict command.
+      -o OUTPUT, --output OUTPUT
+                            Ranking output file in CSV format.
+
+:code:`cv` command performs a k-fold cross-validation on a given data set.
+Data set is specified in CSV format. First column represents target file
+whereas the rest of the columns represent corresponding model files for the
+target given in the first column. Output is saved into given file. Also,
+training sets, random forest files and prediction files can be saved into
+given directories. Additionally, cutoff distance and ntrees arguments can be
+supplied for training steps. Finally, previously saved trainingset and random
+forest files can be reused in next runs through :code:`-u, --reuse` argument.
+
+.. code-block:: console
+
+    $ ./mqap cv -h
+
+    usage: mqap cv [-h] -i INPUT [-k FOLD] -o OUTPUT [-t TRAININGDIR]
+                   [-r RANDOMFORESTDIR] [-p PREDICTIONDIR] [-d DISTANCE]
+                   [-n NTREES] [-u]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -i INPUT, --input INPUT
+                            In the input file, first column represents target file
+                            while the rest represents model files.
+      -k FOLD, --fold FOLD  Fold size of k-fold CV. Default:5
+      -o OUTPUT, --output OUTPUT
+                            Cross-validation output file in CSV format.
+      -t TRAININGDIR, --trainingdir TRAININGDIR
+                            If specified, all training CSVs will be saved into
+                            this dir.
+      -r RANDOMFORESTDIR, --randomforestdir RANDOMFORESTDIR
+                            If specified, all trained RFs will be saved into this
+                            dir in Joblib format.
+      -p PREDICTIONDIR, --predictiondir PREDICTIONDIR
+                            If specified, all predictions will be saved into this
+                            dir.
+      -d DISTANCE, --distance DISTANCE
+                            Maximum distance between target and model atoms to
+                            determine class labels. Default value is 3.5 angstrom.
+      -n NTREES, --ntrees NTREES
+                            Number of trees in the forest. Default: 100
+      -u, --reuse           If enabled, previously saved training/randomforest
+                            files are reused. Default: Disabled
 
 Requirements:
 =============

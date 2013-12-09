@@ -111,7 +111,7 @@ cvCommand.add_argument('-i', '--input',
 cvCommand.add_argument('-k', '--fold', help='Fold size of k-fold CV. Default:5',
                             default=5, type=int)
 cvCommand.add_argument('-o', '--output',
-                            help='Ranking output file in CSV format.',
+                            help='Cross-validation output file in CSV format.',
                             required=True)
 cvCommand.add_argument('-t', '--trainingdir',
                             help='If specified, all training CSVs will be saved '
