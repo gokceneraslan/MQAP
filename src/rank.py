@@ -34,9 +34,9 @@ def rank(predictions, outputFilename):
                                          if x[0].startswith(predname+':')])+1)
         scores.append((predname, score))
 
-    scores.sort(key=lambda x: x[1], reverse=True)
     df = pd.DataFrame([x[0] for x in scores], columns=['Predictions'])
     df['Scores'] = [x[1] for x in scores]
+    df.sort(columns=['Scores', 'Predictions'], ascending=[0, 1], inplace=True)
 
     df.to_csv(outputFilename, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
