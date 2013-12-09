@@ -62,7 +62,7 @@ def predict(rf, models, outputs=None, saveOutput=False, outputdir=None,
             modelDF = modelDFList[i]
 
         prediction = rf.predict(MQAPmapper.transform(modelDF))
-        modelDF['ClassLabel'] = pd.Series(prediction)
+        modelDF['ClassLabel'] = pd.Series(prediction, index=modelDF.index)
 
         if saveOutput:
             if outputs: out = outputs[i]
