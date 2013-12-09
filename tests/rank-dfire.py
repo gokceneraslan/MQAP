@@ -40,6 +40,6 @@ data = [(os.path.basename(x.split()[0]), float(x.split()[1])) for x in out.split
 
 df = pd.DataFrame([x[0] for x in data], columns=['Predictions'])
 df['Scores'] = [x[1] for x in data]
-df.sort(columns=['Scores'], inplace=True, ascending=True)
+df.sort(columns=['Scores', 'Predictions'], inplace=True, ascending=[1,1])
 
 df.to_csv(args.output, index=False, quoting=csv.QUOTE_NONNUMERIC)
