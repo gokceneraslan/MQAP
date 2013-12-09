@@ -19,8 +19,8 @@
 import argparse
 
 import pandas as pd
+import numpy as np
 import scipy.stats
-from sklearn import preprocessing
 
 parser = argparse.ArgumentParser()
 
@@ -32,14 +32,11 @@ args = parser.parse_args()
 file1 = pd.read_csv(args.rankings[0])
 file2 = pd.read_csv(args.rankings[1])
 
-rank1 = file1['Predictions']
-rank2 = file2['Predictions']
+rank1 = file1['Predictions'].values
+rank2 = file2['Predictions'].values
 
-le = preprocessing.LabelEncoder()
-le.fit(rank1)
-
-encoded_rank1 = le.transform(rank1)
-encoded_rank2 = le.transform(rank2)
+encoded_rank1 = np.array(range(len(rank1)))
+encoded_rank2 = np.array([np.where(rank1 == x)[0][0] for x in rank2])
 
 print encoded_rank1
 print '============'
