@@ -20,12 +20,14 @@ import os
 import pandas as pd
 
 from encoders import MQAPmapper
-from generateTraining import generateFeatures
+from generateTraining import generateFeatures, generateTrainingSet
 
 #needed for Joblib to reconstruct RandomForest object from the Joblib file
 from sklearn.ensemble import RandomForestClassifier
 
-def predict(rf, models, outputs=None, saveOutput=False, outputdir=None):
+def predict(rf, models, outputs=None, saveOutput=False, outputdir=None,
+            templateFile=None):
+
     data = []
     assert isinstance(models, list), 'models parameter must be a list'
 
@@ -42,10 +44,25 @@ def predict(rf, models, outputs=None, saveOutput=False, outputdir=None):
         # load trained RandomForest file in Joblib format
         rf = joblib.load(rf)
 
+    # if templateFile argument is used, then netsurfp/psipred features will be
+    # copied from this model to all model structures
+    if templateFile:
+        modelDFList = generateTrainingSet({templateFile: models}, 5,
+                                          combineOutput=False)
+        assert len(modelDFList) == len(models), "Some model PDBs cannot be parsed."
+        modelDFList = [x.drop('ClassLabel', 1) for x in modelDFList]
+
     for i, modelFilename in enumerate(models):
-        newdata = generateFeatures(modelFilename)
-        prediction = rf.predict(MQAPmapper.transform(newdata))
-        newdata['ClassLabel'] = pd.Series(prediction)
+
+        #cross-validation supplies the target model, we can use it to make
+        #things faster by running psipred/netsurfp only once
+        if not templateFile:
+            modelDF = generateFeatures(modelFilename)
+        else:
+            modelDF = modelDFList[i]
+
+        prediction = rf.predict(MQAPmapper.transform(modelDF))
+        modelDF['ClassLabel'] = pd.Series(prediction)
 
         if saveOutput:
             if outputs: out = outputs[i]
@@ -57,8 +74,8 @@ def predict(rf, models, outputs=None, saveOutput=False, outputdir=None):
             if outputdir:
                 out = os.path.join(outputdir, os.path.basename(out))
 
-            newdata.to_csv(out, index=False, quoting=csv.QUOTE_NONNUMERIC)
+            modelDF.to_csv(out, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
-        data.append(newdata)
+        data.append(modelDF)
 
     return data

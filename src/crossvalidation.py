@@ -67,12 +67,8 @@ def crossvalidate(input, fold, output, distance, ntrees, reuse, trainingdir,
         else:
             rf = train(trainingset, ntrees, rfoutput)
 
-        testmodels = []
         for test_index in test_indices:
-            testmodels += cases[test_index][1]
+            predict(rf, cases[test_index][1], saveOutput=predictiondir,
+                    outputdir=predictiondir, templateFile=cases[test_index][0])
 
-        predictions = predict(rf, testmodels, saveOutput=predictiondir,
-                              outputdir=predictiondir)
         iteration += 1
-
-    return predictions

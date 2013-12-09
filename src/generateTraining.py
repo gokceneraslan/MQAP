@@ -139,7 +139,7 @@ def generateFeatures(modelFilename):
 
 # TODO: so many code duplication in generateFeatures & generateTrainingSet
 # refoactor to reuse common code
-def generateTrainingSet(inputdict, distance, output=None):
+def generateTrainingSet(inputdict, distance, output=None, combineOutput=True):
 
     devnull = open(os.devnull, 'w')
     subprocess.check_call('dssp --version', shell=True, stdout=devnull,
@@ -152,7 +152,7 @@ def generateTrainingSet(inputdict, distance, output=None):
                           stderr=devnull)
     devnull.close()
 
-    dataframe = pd.DataFrame()
+    finalData = pd.DataFrame() if combineOutput else []
 
     for target, models in inputdict.items():
 
@@ -263,17 +263,23 @@ def generateTrainingSet(inputdict, distance, output=None):
                 prody.calcDistance(maptarget.copy(), mapmodel.copy())) < distance).astype(int),
                 index=maptarget.getResindices())
 
-            dataframe = pd.concat([dataframe, pd.DataFrame(datadict)])
+            if combineOutput:
+                finalData = pd.concat([finalData, pd.DataFrame(datadict)])
+            else:
+                finalData.append(pd.DataFrame(datadict))
 
         #remove temporary directory
         shutil.rmtree(tempdir, ignore_errors=True)
 
     if output:
-        dataframe.to_csv(output, index=False, quoting=csv.QUOTE_NONNUMERIC)
-        #dataframe.to_csv(output)
+        if combineOutput:
+            finalData.to_csv(output, index=False, quoting=csv.QUOTE_NONNUMERIC)
+            #dataframe.to_csv(output)
+        else:
+            print('Warning! Output must be combined to be saved into a CSV '
+                  'file')
 
-    print(dataframe)
-    return dataframe
+    return finalData
 
 
 # calculate transformation matrix using DeepAlign tool
