@@ -95,7 +95,8 @@ rankCommand = subparsers.add_parser('rank', help='Rank given prediction '
 
 rankCommand.add_argument('-p', '--predictions',
                             help='Prediction output file(s) produced by '
-                            'predict command.', nargs='+', metavar='PREDICTION')
+                            'predict command.', nargs='+',
+                            metavar='PREDICTION', required=True)
 rankCommand.add_argument('-o', '--output',
                             help='Ranking output file in CSV format.',
                             required=True)

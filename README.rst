@@ -118,7 +118,7 @@ accordingly. Output is written to the supplied file.
 
     $ ./mqap rank -h
 
-    usage: mqap rank [-h] [-p PREDICTION [PREDICTION ...]] -o OUTPUT
+    usage: mqap rank [-h] -p PREDICTION [PREDICTION ...] -o OUTPUT
 
     optional arguments:
       -h, --help            show this help message and exit
